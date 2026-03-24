@@ -15,8 +15,8 @@ echo "sleep 500ms..."; usleep( 500000); echo " OK\n";
 
 
 // global setup 
-$psize = 100 * mt_rand( 1, 14);
-$probesize = 50 * mt_rand( 1, 10);
+$psize = 1200;       // bytes
+$probesize = 60;     // packets
 echo "[START]\n";
 $msg = "action=restart"; $C->send( $msg); echo "> $msg\n";
 sleep( 1);
@@ -26,46 +26,51 @@ $C->init( $rip, $rport);
 echo "sleep 500ms..."; usleep( 500000); echo " OK\n";
 
 
-// my method
-echo "[PROPOSED]\n";
-$lastime = tsystem(); $before = tsystem(); $thru = null;
-$msg = "tag=$tag,run=$run,method=proposed,psize=$psize,probesize=$probesize"; $C->send( $msg);
-echo "> $msg\n"; unset( $status);
-while ( tsystem() - $lastime < $timeout) {
-	$msg = $C->recv(); if ( ! $msg) { usleep( 300000); continue; }
-	echo '< ' . json_encode( $msg) . "\n";
-	extract( $msg); break;
-}
-if ( ! isset( $status)) die( "\n");
-$c = "$CDIR/probe.udp.proposed.tx $rip $port2 $psize $probesize";
-echo "c[$c]\n"; procat( $c);
-$lastime = tsystem(); unset( $status);
-while ( tsystem() - $lastime < $timeout) {
-	$msg = $C->recv(); if ( ! $msg) { usleep( 300000); continue; }
-	echo '< ' . json_encode( $msg) . "\n";
-	extract( $msg); break;
-}
-if ( ! isset( $status)) die( "\n");
-echo "OK, took " . tshinterval( $before, tsystem()) . "\n";
-if ( $thru == 0) die( "\n");
-
+// PROPOSED method bypassed - use fixed thru for PathChirp/IGI
+// echo "[PROPOSED]\n";
+// $lastime = tsystem(); $before = tsystem(); $thru = null;
+// $msg = "tag=$tag,run=$run,method=proposed,psize=$psize,probesize=$probesize"; $C->send( $msg);
+// echo "> $msg\n"; unset( $status);
+// while ( tsystem() - $lastime < $timeout) {
+// 	$msg = $C->recv(); if ( ! $msg) { usleep( 300000); continue; }
+// 	echo '< ' . json_encode( $msg) . "\n";
+// 	extract( $msg); break;
+// }
+// if ( ! isset( $status)) die( "\n");
+// $c = "$CDIR/probe.udp.proposed.tx $rip $port2 $psize $probesize";
+// echo "c[$c]\n"; procat( $c);
+// $lastime = tsystem(); unset( $status);
+// while ( tsystem() - $lastime < $timeout) {
+// 	$msg = $C->recv(); if ( ! $msg) { usleep( 300000); continue; }
+// 	echo '< ' . json_encode( $msg) . "\n";
+// 	extract( $msg); break;
+// }
+// if ( ! isset( $status)) die( "\n");
+// echo "OK, took " . tshinterval( $before, tsystem()) . "\n";
+// if ( $thru == 0 || !isset($thru)) {
+// 	echo "WARNING: Using default throughput\n";
+// 	$thru = 5000; // 5 Mbps
+// }
+$thru = 5000; // Kbps (5 Mbps) - bypass PROPOSED, use fixed value for PathChirp/IGI
 
 // pathchirp method
 echo "[PATHCHIRP]\n";
 $smallest = 0.5 * $thru;
 $biggest = 5 * $thru;
 echo "picking alpha (smallest=$smallest,biggest=$biggest):";
-for ( $alpha = 1; $alpha < 5; $alpha += 0.01) {
+for ( $alpha = 1.05; $alpha < 2.5; $alpha += 0.05) {
 	$L = array(); $pspace = round( 1000000 * ( ( $psize * 8) / ( 1000 * $smallest)));
-	while ( count( $L) < $probesize) {
+	$iter = 0;
+	while ( count( $L) < $probesize && $iter < 200) {
 		lpush( $L, $pspace);
 		$pspace = round( $pspace / $alpha);
+		$iter++;
 	}
 	$thru2 = round( 0.001 * ( ( $psize * 8) / ( llast( $L) * 0.000001)));
 	echo " $alpha/$pspace/$thru2";
 	if ( $thru2 > $biggest) break;
 }
-echo " STOP!  apha($alpha)\n";
+echo "\nSelected alpha = $alpha\n";
 $pspace = round( 1000000 * ( ( $psize * 8) / ( 1000 * $smallest)));
 $lastime = tsystem(); $before = tsystem();
 $msg = "tag=$tag,run=$run,method=pathchirp,psize=$psize,probesize=$probesize,pspace=$pspace,alpha=$alpha"; $C->send( $msg);
@@ -77,7 +82,9 @@ while ( tsystem() - $lastime < $timeout) {
 }
 if ( ! isset( $status)) die( "\n");
 $c = "$CDIR/probe.udp.pathchirp.tx $rip $port2 $psize $probesize $pspace $alpha";
-echo "c[$c]\n"; procat( $c);
+echo "Running command: $c\n";
+exec( $c . ' > /dev/null 2>&1 &');
+sleep( 5);
 $lastime = tsystem(); unset( $status);
 while ( tsystem() - $lastime < $timeout) {
 	$msg = $C->recv(); if ( ! $msg) { usleep( 300000); continue; }
@@ -103,7 +110,9 @@ while ( tsystem() - $lastime < $timeout) {
 }
 if ( ! isset( $status)) die( "\n");
 $c = "$CDIR/probe.udp.igi.tx $rip $port2 $psize $probesize $pspace1 $step $pspace2 > igi.log";
-echo "c[$c]\n"; procat( $c);
+echo "Running command: $c\n";
+exec( $c . ' > /dev/null 2>&1 &');
+sleep( 5);
 $lastime = tsystem(); unset( $status);
 while ( tsystem() - $lastime < $timeout) {
 	$msg = $C->recv(); if ( ! $msg) { usleep( 300000); continue; }

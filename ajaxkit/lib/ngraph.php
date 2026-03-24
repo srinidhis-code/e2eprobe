@@ -32,8 +32,8 @@ class Location {
 		$sum = 0;
 		for ( $i = 0; $i < $dimension; $i++) {
 			$sum += pow( 
-				isset( $this->coordinates[ $i]) ? $this->coordinates[ $i] : 0 - 
-				isset( $location->coordinates[ $i]) ? $location->coordinates[ $i] : 0,
+				( isset( $this->coordinates[ $i]) ? $this->coordinates[ $i] : 0) - 
+				( isset( $location->coordinates[ $i]) ? $location->coordinates[ $i] : 0),
 				2
 			);
 		}

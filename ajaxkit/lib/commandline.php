@@ -28,6 +28,17 @@ function clget( $one, $two = '', $three = '', $four = '', $five = '', $six = '',
 		foreach ( $h as $k => $v) if ( ! $k || ! strlen( "$k") || ! $v || ! strlen( "$v")) $ok = false;
 		if ( $ok && ltt( hk( $h)) == ltt( $ks)) $vs = hv( $h);	// keys are decleared by themselves, just create values
 	}
+	// multiple args each "key=value" -> parse and pick expected keys (e.g. rip=127.0.0.1 rport=9000 tag=test timeout=30 run=1)
+	if ( count( $vs) > 1 && count( $vs) >= count( $ks)) {
+		$allKeyVal = true;
+		foreach ( $vs as $v) if ( strpos( trim( $v), '=') === false) { $allKeyVal = false; break; }
+		if ( $allKeyVal) {
+			$h = tth( implode( ',', $vs), ',');
+			$ok = true;
+			foreach ( $ks as $k) if ( ! isset( $h[ $k])) { $ok = false; break; }
+			if ( $ok) { $vs = array(); foreach ( $ks as $k) $vs[] = $h[ $k]; }
+		}
+	}
 	if ( count( $vs) && ( $vs[ 0] == '-h' || $vs[ 0] == '--help' || $vs[ 0] == 'help')) { clshowhelp(); die( ''); }
 	if ( count( $vs) != count( $ks)) { 
 		echo "\n";
@@ -58,6 +69,17 @@ function clgetq( $one, $two = '', $three = '', $four = '', $five = '', $six = ''
 		$h = tth( $vs[ 0]); $ok = true; if ( ! count( $h)) $ok = false;  
 		foreach ( $h as $k => $v) if ( ! $k || ! strlen( "$k") || ! $v || ! strlen( "$v")) $ok = false;
 		if ( $ok && ltt( hk( $h)) == ltt( $ks)) $vs = hv( $h);	// keys are decleared by themselves, just create values
+	}
+	// multiple args each "key=value" -> parse and pick expected keys (e.g. rip=127.0.0.1 rport=9000 tag=test timeout=30 run=1)
+	if ( count( $vs) > 1 && count( $vs) >= count( $ks)) {
+		$allKeyVal = true;
+		foreach ( $vs as $v) if ( strpos( trim( $v), '=') === false) { $allKeyVal = false; break; }
+		if ( $allKeyVal) {
+			$h = tth( implode( ',', $vs), ',');
+			$ok = true;
+			foreach ( $ks as $k) if ( ! isset( $h[ $k])) { $ok = false; break; }
+			if ( $ok) { $vs = array(); foreach ( $ks as $k) $vs[] = $h[ $k]; }
+		}
 	}
 	if ( count( $vs) && ( $vs[ 0] == '-h' || $vs[ 0] == '--help' || $vs[ 0] == 'help')) { clshowhelp(); die( ''); }
 	if ( count( $vs) != count( $ks)) { 

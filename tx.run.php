@@ -8,7 +8,7 @@ clhelp( "PURPOSE: to keep the TX socket alive");
 htg( clget( 'rip,rport,tag,timeout'));
 
 $run = 1;
-while ( 1) {
+for ($i = 1; $i <= 1; $i++){
 	echo "\n\n";
 	echo "RUN $run   sleep 1s..."; sleep( 1); echo " OK\n";
 	system( "php tx.php $rip $rport $tag $timeout $run");

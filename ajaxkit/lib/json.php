@@ -12,7 +12,7 @@ function jsonencode( $data, $tab = 1, $linedelimiter = "\n") { switch ( gettype(
 		$len = strlen( $data);
 		$special = false;
 		for ( $i = 0; $i < $len; $i++) {
-			$ord = ord( $data{ $i});
+			$ord = ord( $data[$i]);
 			$flag = false;
 			switch ( $ord) {
 				case 0x08: $out .= '\b'; $flag = true; break;
@@ -22,17 +22,17 @@ function jsonencode( $data, $tab = 1, $linedelimiter = "\n") { switch ( gettype(
 				case 0x0D: $out .= '\r'; $flag = true; break;
 				case  0x22:
 				case 0x2F:
-				case 0x5C: $out .= '\\' . $data{ $i}; $flag = true; break;
+				case 0x5C: $out .= '\\' . $data[$i]; $flag = true; break;
 			}
 			if ( $flag) { $special = true; continue; } // switched case
 			
 			// normal ascii
 			if ( $ord >= 0x20 && $ord <= 0x7F) { 
-				$out .= $data{ $i}; continue;
+				$out .= $data[$i]; continue;
 			}
 			// unicode
 			if ( ( $ord & 0xE0) == 0xC0) {
-				$char = pack( 'C*', $ord, ord( $data{ $i + 1}));
+				$char = pack( 'C*', $ord, ord( $data[$i + 1]));
 				$i += 1;
 				$utf16 = mb_convert_encoding( $char, 'UTF-16', 'UTF-8');
 				$out .= sprintf( '\u%04s', bin2hex( $utf16));
@@ -40,7 +40,7 @@ function jsonencode( $data, $tab = 1, $linedelimiter = "\n") { switch ( gettype(
 				continue;
 			}
 			if ( ( $ord & 0xF0) == 0xE0) {
-				$char = pack( 'C*', $ord, ord( $data{ $i + 1}), ord( $data{ $i + 2}));
+				$char = pack( 'C*', $ord, ord( $data[$i + 1]), ord( $data[$i + 2]));
 				$i += 2;
 				$utf16 = mb_convert_encoding( $char, 'UTF-16', 'UTF-8');
 				$out .= sprintf( '\u%04s', bin2hex($utf16));
@@ -48,7 +48,7 @@ function jsonencode( $data, $tab = 1, $linedelimiter = "\n") { switch ( gettype(
 				continue;
 			}
 			if ( ( $ord & 0xF8) == 0xF0) {
-				$char = pack( 'C*', $ord, ord( $data{ $i + 1}), ord( $data{ $i + 2}), ord( $data{ $i + 3}));
+				$char = pack( 'C*', $ord, ord( $data[$i + 1]), ord( $data[$i + 2]), ord( $data[$i + 3]));
 				$i += 3;
 				$utf16 = mb_convert_encoding( $char, 'UTF-16', 'UTF-8');
 				$out .= sprintf( '\u%04s', bin2hex( $utf16));
@@ -56,7 +56,7 @@ function jsonencode( $data, $tab = 1, $linedelimiter = "\n") { switch ( gettype(
 				continue;
 			}
 			if ( ( $ord & 0xFC) == 0xF8) {
-				$char = pack( 'C*', $ord, ord( $data{ $i + 1}), ord( $data{ $i + 2}), ord( $data{ $i + 3}), ord( $data{ $i + 4}));
+				$char = pack( 'C*', $ord, ord( $data[$i + 1]), ord( $data[$i + 2]), ord( $data[$i + 3]), ord( $data[$i + 4]));
 				$c += 4;
 				$utf16 = mb_convert_encoding( $char, 'UTF-16', 'UTF-8');
 				$out .= sprintf( '\u%04s', bin2hex( $utf16));
@@ -64,7 +64,7 @@ function jsonencode( $data, $tab = 1, $linedelimiter = "\n") { switch ( gettype(
 				continue;
 			}
 			if ( ( $ord & 0xFE) == 0xFC) {
-				$char = pack( 'C*', $ord, ord( $data{ $i + 1}), ord( $data{ $i + 2}), ord( $data{ $i + 3}), ord( $data{ $i + 4}), ord( $data{ $i + 5}));
+				$char = pack( 'C*', $ord, ord( $data[$i + 1]), ord( $data[$i + 2]), ord( $data[$i + 3]), ord( $data[$i + 4]), ord( $data[$i + 5]));
 				$c += 5;
 				$utf16 = mb_convert_encoding( $char, 'UTF-16', 'UTF-8');
 				$out .= sprintf( '\u%04s', bin2hex( $utf16));

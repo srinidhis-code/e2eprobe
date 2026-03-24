@@ -12,7 +12,7 @@ while ( procpid( 'rx.php')) { $pid = procpid( 'rx.php'); prockill( $pid); echo "
 echo " OK\n";
 while ( 1) {
 	echo "\n\n"; $before = tsystem();
-	$c = "/usr/local/php/bin/php $CDIR/rx.php $port $CDIR"; echo "c[$c]\n"; procat( $c);
+	$c = "/usr/bin/php $CDIR/rx.php $port $CDIR"; echo "c[$c]\n"; system( $c);
 	echo "waiting..."; while ( tsystem() - $before < 30 && procpid( 'rx.php')) { echo '.'; usleep( 100000); }
 	if ( procpid( 'rx.php')) prockill( procpid( 'rx.php'));
 }
